@@ -18,8 +18,10 @@ class User(Model):
     initial_ticks = Column(Integer)
     ticks = Column(Integer)
 
-    def __init__(self, id, mention=None, destination=None):
+    def __init__(self, id, name, display_name, mention=None, destination=None):
         self.id = id
+        self.name = name
+        self.display_name = display_name
         self.mention = mention
         self.destination = destination
         self.is_exploring = False
