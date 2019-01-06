@@ -38,3 +38,6 @@ def get_config(name=os.getenv('CONFIG', 'dev')):
             return config
 
     assert False, 'Requested configuration "{}" was not found'.format(name)
+
+
+config = get_config()

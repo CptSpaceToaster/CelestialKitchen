@@ -1,6 +1,9 @@
 import itertools
 import functools
 
+from celestialKitchen.database import db
+from celestialKitchen.models.user import User
+
 
 class ValidatorException(Exception):
     def __init__(self, reason):
@@ -67,7 +70,7 @@ def command(schema):
     return decorator
 
 
-class MentionValidator(Validator):
+class IdValidator(Validator):
     def validate(self, token):
         if not token.startswith('<@') or not token.endswith('>'):
             raise ValidatorException('User wasn\'t properly mentioned')
@@ -76,7 +79,19 @@ class MentionValidator(Validator):
         token = token.rstrip('>')
         if not token.isnumeric():
             raise ValidatorException('User mention wasn\'t numeric')
+        print('1: ' + token)
         return token
+
+
+class MentionValidator(IdValidator):
+    def validate(self, token):
+        token = IdValidator.validate(self, token)
+        print('2: ' + token)
+        user = db.session.query(User).filter_by(id=token).first()
+        if not user:
+            raise ValidatorException('I can\'t find that user')
+
+        return user
 
 
 class NumericValidator(Validator):
@@ -86,7 +101,28 @@ class NumericValidator(Validator):
         return int(token)
 
 
+class AreaValidator(Validator):
+    def validate(self, token):
+        # area = areas.get(token, None)
+        # if not area:
+        #     raise ValidatorException('I don\'t know where the {} is'.format(token))
+        # return area
+        return token
+
+
+class RecipeValidator(Validator):
+    def validate(self, token):
+        # recipe = recipes.get(token, None)
+        # if not recipe:
+        #     raise ValidatorException('I don\'t know what a {} is'.format(token))
+        # return recipe
+        return token
+
+
 EmptySchema = Schema()
-MentionSchema = Schema(validators=[MentionValidator('mention')])
+IdSchema = Schema(validators=[MentionValidator('id')])
+MentionSchema = Schema(validators=[MentionValidator('user')])
 NumericSchema = Schema(validators=[NumericValidator('number')])
-GrantSchema = Schema(validators=[MentionValidator('mention'), Validator('name'), NumericValidator('quantity', default=1)])
+GrantSchema = Schema(validators=[MentionValidator('user'), Validator('name'), NumericValidator('quantity', default=1)])
+ExploreSchema = Schema(validators=[AreaValidator('recipe')])
+CraftSchema = Schema(validators=[RecipeValidator('recipe')])
