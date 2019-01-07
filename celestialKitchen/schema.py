@@ -3,6 +3,7 @@ import functools
 
 from celestialKitchen.database import db
 from celestialKitchen.models.user import User
+from celestialKitchen.models.area import Area
 
 
 class ValidatorException(Exception):
@@ -103,11 +104,10 @@ class NumericValidator(Validator):
 
 class AreaValidator(Validator):
     def validate(self, token):
-        # area = areas.get(token, None)
-        # if not area:
-        #     raise ValidatorException('I don\'t know where the {} is'.format(token))
-        # return area
-        return token
+        area = db.session.query(Area).filter(Area.name.ilike(token)).first()
+        if not area:
+            raise ValidatorException('I can\'t find an area named: {}'.format(token))
+        return area
 
 
 class RecipeValidator(Validator):
@@ -126,3 +126,5 @@ NumericSchema = Schema(validators=[NumericValidator('number')])
 GrantSchema = Schema(validators=[MentionValidator('user'), Validator('name'), NumericValidator('quantity', default=1)])
 ExploreSchema = Schema(validators=[AreaValidator('recipe')])
 CraftSchema = Schema(validators=[RecipeValidator('recipe')])
+NameSchema = Schema(validators=[Validator('name')])
+AreaSchema = Schema(validators=[AreaValidator('area')])

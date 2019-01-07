@@ -1,7 +1,7 @@
 import discord
 import random
 from celestialKitchen.client import config
-from celestialKitchen.wrappers import fetch_user
+from celestialKitchen.wrappers import fetch_user, fetch_server
 from celestialKitchen.schema import command, EmptySchema, CraftSchema
 from celestialKitchen.tasks import do_explore
 
@@ -33,9 +33,11 @@ async def process_help(client, message, user):
 
 @command(EmptySchema)
 @fetch_user
-async def process_areas(client, message, user):
+@fetch_server
+async def process_areas(client, message, user, server):
     resp = '**__Areas__**'
-    # TODO
+    for area in server.areas:
+        resp += '\n{}'.format(area.name)
     await client.send_message(discord.Object(user.destination), resp)
 
 

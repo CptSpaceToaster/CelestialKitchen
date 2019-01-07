@@ -14,9 +14,6 @@ client = discord.Client()
 command_prefix = config.DEFAULT_COMMAND_PREFIX
 command_modules = [name for _, name, _ in pkgutil.iter_modules(['celestialKitchen/commands'], 'celestialKitchen.commands.')]
 
-print(command_modules)
-print(__name__)
-
 for c in command_modules:
     importlib.import_module(c)
 
@@ -26,10 +23,11 @@ async def on_ready():
     print('Logged in as: {} - {}'.format(client.user.name, client.user.id))
     for server in client.servers:
         if not db.session.query(Server).filter_by(id=server.id).count():
-            print('  Registering {}'.format(server.id))
+            print('  Registering {} - {}'.format(server.id, server.name))
             Server.create(id=server.id)
         else:
-            print('  Already registered {}'.format(server.id))
+            print('  Already registered {} - {}'.format(server.id, server.name))
+        
     print('------\nChecking to see if there are any Explorations to resume')
 
     for user in db.session.query(User).filter(User.ticks > 0):

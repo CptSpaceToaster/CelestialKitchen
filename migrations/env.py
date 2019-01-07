@@ -25,6 +25,7 @@ config.set_main_option('sqlalchemy.url', coco_config.SQLALCHEMY_DATABASE_URI)
 from celestialKitchen.models.server import Server
 from celestialKitchen.models.user import User
 from celestialKitchen.models.item import Item
+from celestialKitchen.models.area import Area
 target_metadata = [Server.metadata]
 
 

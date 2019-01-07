@@ -2,23 +2,12 @@ from celestialKitchen.database import db
 from celestialKitchen.models.user import User, register_new_user
 from celestialKitchen.models.item import Item
 from celestialKitchen.wrappers import requires_admin, fetch_server
-from celestialKitchen.schema import command, EmptySchema, IdSchema, MentionSchema, GrantSchema, NumericSchema
-from celestialKitchen.inventory import adjust_item_quantity
-
-
-@requires_admin
-@command(MentionSchema)
-async def process_inspect(client, message, user):
-    resp = '```id: {}\n\nInventory:'.format(user.id)
-    for item in user.items:
-        resp += '\n{} x{} id: {}'.format(item.name, item.quantity, item.id)
-    resp += '```'
-    await client.send_message(message.channel, resp)
+from celestialKitchen.schema import command, EmptySchema, IdSchema, MentionSchema, NumericSchema
 
 
 @requires_admin
 @command(NumericSchema)
-async def process_delete(client, message, number):
+async def process_delete_item(client, message, number):
     item = db.session.query(Item).filter_by(id=number).first()
     if not item:
         await client.send_message(message.channel, 'I can\'t find that item')
@@ -26,19 +15,6 @@ async def process_delete(client, message, number):
 
     item.delete()
     await client.send_message(message.channel, '{} removed'.format(item.name))
-
-@requires_admin
-@command(GrantSchema)
-async def process_grant(client, message, user, name, quantity):
-    adjust_item_quantity(user, name, quantity)
-    await client.send_message(message.channel, 'Granted {} {}'.format(quantity, name))
-
-
-@requires_admin
-@command(GrantSchema)
-async def process_remove(client, message, user, name, quantity):
-    adjust_item_quantity(user, name, -quantity)
-    await client.send_message(message.channel, 'Removed {} {} from {}'.format(quantity, name, user.mention))
 
 
 @requires_admin
