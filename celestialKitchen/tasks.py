@@ -1,7 +1,9 @@
 import asyncio
 import discord
 from celestialKitchen.config import config
+from celestialKitchen.database import db
 from celestialKitchen.inventory import adjust_item_quantity
+from celestialKitchen.models.drop import Drop
 
 
 async def do_explore(client, user):
@@ -11,21 +13,16 @@ async def do_explore(client, user):
             print('{} - {}/{}'.format(user.id, user.initial_ticks - user.ticks + 1, user.initial_ticks))
         user.update(ticks=user.ticks-1)
 
-    item = 'Rock'
-    quantity = 1
-    if user.initial_ticks == 3:
-        item = 'Wood'
-    elif user.initial_ticks == 4:
-        quantity = 2
-    elif user.initial_ticks == 5:
-        item = 'Tin Ore'
+    drop = db.session.query(Drop).get(user.drop_id)
+    if not drop:
+        await client.send_message(discord.Object(user.destination), '{} found nothing.')
+        return
+    adjust_item_quantity(user, drop.name, drop.quantity)
 
-    adjust_item_quantity(user, item, quantity)
-
-    if quantity > 1:
-        resp = '{} found {} {}s!'.format(user.mention, quantity, item)
+    if drop.quantity > 1:
+        resp = '{} found {} {}s!'.format(user.mention, drop.quantity, drop.name)
     else:
-        resp = '{} found a {}!'.format(user.mention, item)
+        resp = '{} found a {}!'.format(user.mention, drop.name)
 
     print(resp)
     await client.send_message(discord.Object(user.destination), resp)

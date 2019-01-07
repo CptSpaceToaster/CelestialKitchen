@@ -16,6 +16,7 @@ class User(Model):
 
     is_exploring = Column(Boolean)
     initial_ticks = Column(Integer)
+    drop_id = Column(Integer)
     ticks = Column(Integer)
 
     def __init__(self, id, name, display_name, mention=None, destination=None):

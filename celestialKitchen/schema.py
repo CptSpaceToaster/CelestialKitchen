@@ -80,18 +80,15 @@ class IdValidator(Validator):
         token = token.rstrip('>')
         if not token.isnumeric():
             raise ValidatorException('User mention wasn\'t numeric')
-        print('1: ' + token)
         return token
 
 
 class MentionValidator(IdValidator):
     def validate(self, token):
         token = IdValidator.validate(self, token)
-        print('2: ' + token)
         user = db.session.query(User).filter_by(id=token).first()
         if not user:
             raise ValidatorException('I can\'t find that user')
-
         return user
 
 
@@ -128,3 +125,6 @@ ExploreSchema = Schema(validators=[AreaValidator('recipe')])
 CraftSchema = Schema(validators=[RecipeValidator('recipe')])
 NameSchema = Schema(validators=[Validator('name')])
 AreaSchema = Schema(validators=[AreaValidator('area')])
+NewDropSchema = Schema(validators=[AreaValidator('area'), Validator('name'), NumericValidator('quantity'), NumericValidator('ticks'), NumericValidator('weight', default=1)])
+RemoveDropSchema = Schema(validators=[AreaValidator('area'), Validator('name')])
+AdjustDropSchema = Schema(validators=[AreaValidator('area'), Validator('name'), NumericValidator('number')])

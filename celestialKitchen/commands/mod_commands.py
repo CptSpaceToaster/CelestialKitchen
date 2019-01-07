@@ -1,7 +1,8 @@
 from celestialKitchen.database import db
 from celestialKitchen.models.area import Area
+from celestialKitchen.models.drop import Drop
 from celestialKitchen.wrappers import requires_mod, fetch_server
-from celestialKitchen.schema import command, NameSchema, MentionSchema, GrantSchema, AreaSchema
+from celestialKitchen.schema import command, NameSchema, MentionSchema, GrantSchema, AreaSchema, NewDropSchema, RemoveDropSchema, AdjustDropSchema
 from celestialKitchen.inventory import adjust_item_quantity
 
 
@@ -47,3 +48,62 @@ async def process_remove_area(client, message, area):
     area.delete()
     await client.send_message(message.channel, 'Removed {}'.format(area.name))
 
+
+@requires_mod
+@command(NewDropSchema)
+async def process_add_drop(client, message, area, name, quantity, ticks, weight):
+    Drop.create(area_id=area.id, name=name, quantity=quantity, ticks=ticks, weight=weight)
+    await client.send_message(message.channel, 'Registered {} in {}'.format(name, area.name))
+
+
+@requires_mod
+@command(RemoveDropSchema)
+async def process_remove_drop(client, message, area, name):
+    for drop in area.drops:
+        if drop.name.lower() == name.lower():
+            drop.delete()
+            await client.send_message(message.channel, 'Removed {} in {}'.format(name, area.name))
+            return
+    await client.send_message(message.channel, 'I couldn\'t find {} in {}'.format(name, area.name))
+
+
+@requires_mod
+@command(AreaSchema)
+async def process_drops(client, message, area):
+    resp = '**__Drops__**:'
+    for drop in area.drops:
+        resp += '\n{} - quantity: {} - ticks: {} - weight: {}'.format(drop.name, drop.quantity, drop.ticks, drop.weight)
+    await client.send_message(message.channel, resp)
+
+
+@requires_mod
+@command(AdjustDropSchema)
+async def process_set_drop_quantity(client, message, area, name, number):
+    for drop in area.drops:
+        if drop.name.lower() == name.lower():
+            drop.update(quantity=number)
+            await client.send_message(message.channel, 'Set {} quantity in {} to {}'.format(name, area.name, number))
+            return
+    await client.send_message(message.channel, 'I couldn\'t find {} in {}'.format(name, area.name))
+
+
+@requires_mod
+@command(AdjustDropSchema)
+async def process_set_drop_ticks(client, message, area, name, number):
+    for drop in area.drops:
+        if drop.name.lower() == name.lower():
+            drop.update(ticks=number)
+            await client.send_message(message.channel, 'Set {} ticks in {} to {}'.format(name, area.name, number))
+            return
+    await client.send_message(message.channel, 'I couldn\'t find {} in {}'.format(name, area.name))
+
+
+@requires_mod
+@command(AdjustDropSchema)
+async def process_set_drop_weight(client, message, area, name, number):
+    for drop in area.drops:
+        if drop.name.lower() == name.lower():
+            drop.update(weight=number)
+            await client.send_message(message.channel, 'Set {} weight in {} to {}'.format(name, area.name, number))
+            return
+    await client.send_message(message.channel, 'I couldn\'t find {} in {}'.format(name, area.name))

@@ -2,32 +2,48 @@ import discord
 import random
 from celestialKitchen.client import config
 from celestialKitchen.wrappers import fetch_user, fetch_server
-from celestialKitchen.schema import command, EmptySchema, CraftSchema
+from celestialKitchen.schema import command, EmptySchema, CraftSchema, AreaSchema
 from celestialKitchen.tasks import do_explore
 
 
-@command(EmptySchema)
+@command(AreaSchema)
 @fetch_user
-# async def process_explore(client, message, area, user):
-async def process_explore(client, message, user):
+async def process_explore(client, message, area, user):
     if user.is_exploring:
-        await client.send_message(discord.Object(user.destination), 'You are already exploring {}. Wait for your expedition to complete!'.format(user.mention))
+        await client.send_message(discord.Object(user.destination), 'You are already exploring {}. Wait for your expedition in the {} to complete!'.format(user.mention, area.name))
         return
 
-    ticks = random.randint(1, 5)
-    user.update(ticks=ticks, initial_ticks=ticks, is_exploring=True)
-    await client.send_message(discord.Object(user.destination), '{} went exploring in the {}'.format(user.mention, 'TODO'))
+    drop = random.choice(sum(([drop] * drop.weight for drop in area.drops), []))
+    print(drop.name)
+    user.update(ticks=drop.ticks, initial_ticks=drop.ticks, is_exploring=True, drop_id=drop.id)
+
+    await client.send_message(discord.Object(user.destination), '{} went exploring in the {}'.format(user.mention, area.name))
     await do_explore(client, user)
 
 
 @command(EmptySchema)
 @fetch_user
-async def process_help(client, message, user):
-    resp = '`{}help` - Show this menu\n'.format(config.DEFAULT_COMMAND_PREFIX)
+@fetch_server
+async def process_help(client, message, user, server):
+    resp = '**__Commands__**\n'
+    resp += '`{}help` - Show this menu\n'.format(config.DEFAULT_COMMAND_PREFIX)
     resp += '`{}areas` - Show a list of known areas\n'.format(config.DEFAULT_COMMAND_PREFIX)
     resp += '`{}explore [area]` - Explore in an area for useful materials\n'.format(config.DEFAULT_COMMAND_PREFIX)
     resp += '`{}recipes` - Show a list of known recipes\n'.format(config.DEFAULT_COMMAND_PREFIX)
     resp += '`{}craft [recipe]` - Craft a recipe\n'.format(config.DEFAULT_COMMAND_PREFIX)
+    if user in server.mods:
+        resp += '\n**__Mod Commands__**\n'
+        resp += '`{}inspect [@mention]` - Dump a user\'s ID and inventory information\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}grant [@mention] [item] [quantity]` - Grant an item to a user (default quantity is 1)\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}remove [@mention] [item] [quantity]` - Remove an item from a user\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}add_area [area]` - Add an explorable area to the current server\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}remove_area [area]` - Remove an area from the current server\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}add_drop [area] [item] [quantity] [ticks] [weight]` - Add a drop to an explorable area\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}remove_drop [area] [item]` - Remove a drop from an explorable area\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}drops [area]` - List the drops from an explorable area\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}set_drop_quantity [area] [item] [quantity]` - Set a drop\'s quantity\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}set_drop_ticks [area] [item] [ticks]` - Set the number of ticks a user must wait to obtain a drop\n'.format(config.DEFAULT_COMMAND_PREFIX)
+        resp += '`{}set_drop_weight [area] [item] [weight]` - Set a drop\'s weight. Higher = More Likely\n'.format(config.DEFAULT_COMMAND_PREFIX)
     await client.send_message(discord.Object(user.destination), resp)
 
 
@@ -61,11 +77,4 @@ async def process_inv(client, message, user):
 @command(CraftSchema)
 @fetch_user
 async def process_craft(client, message, recipe, user):
-    if recipe.craft(user):
-        if recipe.output_quantity > 1:
-            resp = '{} crafted {} {}s'.format(user.mention, recipe.output_quantity, recipe.output)
-        else:
-            resp = '{} crafted a {}'.format(user.mention, recipe.output)
-    else:
-        resp = 'You do not the required materials to craft a {}'.format(recipe.output)
-    await client.send_message(discord.Object(user.destination), resp)
+    await client.send_message(discord.Object(user.destination), 'I don\'t know how to craft a {}'.format(recipe))
