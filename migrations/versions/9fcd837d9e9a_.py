@@ -26,8 +26,8 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('mod_association',
-    sa.Column('server_id', sa.Integer(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('server_id', sa.String(), nullable=True),
+    sa.Column('user_id', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['server_id'], ['server.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], )
     )

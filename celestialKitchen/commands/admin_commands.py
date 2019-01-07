@@ -1,6 +1,7 @@
 from celestialKitchen.database import db
 from celestialKitchen.models.user import User, register_new_user
 from celestialKitchen.models.item import Item
+from celestialKitchen.models.drop import Drop
 from celestialKitchen.wrappers import requires_admin, fetch_server
 from celestialKitchen.schema import command, EmptySchema, IdSchema, MentionSchema, NumericSchema
 
@@ -8,7 +9,7 @@ from celestialKitchen.schema import command, EmptySchema, IdSchema, MentionSchem
 @requires_admin
 @command(NumericSchema)
 async def process_delete_item(client, message, number):
-    item = db.session.query(Item).filter_by(id=number).first()
+    item = db.session.query(Item).get(number)
     if not item:
         await client.send_message(message.channel, 'I can\'t find that item')
         return
@@ -70,3 +71,27 @@ async def process_remove_mod(client, message, user, server):
         return
     server.update(mods=mods)
     await client.send_message(message.channel, 'Removed {}\'s mod status!'.format(user.mention))
+
+
+@requires_admin
+@command(EmptySchema)
+async def process_inspect_drops(client, message):
+    resp = '**__Drops__**'
+    for drop in db.session.query(Drop).all():
+        area_name = 'Null'
+        if drop.area:
+            area_name = drop.area.name
+        resp += '\n{}: {} - quantity: {} - ticks: {} - weight: {} - id: {}'.format(area_name, drop.name, drop.quantity, drop.ticks, drop.weight, drop.id)
+    await client.send_message(message.channel, resp)
+
+
+@requires_admin
+@command(NumericSchema)
+async def process_delete_drop(client, message, number):
+    drop = db.session.query(Drop).get(number)
+    if not drop:
+        await client.send_message(message.channel, 'I can\'t find that drop')
+        return
+
+    drop.delete()
+    await client.send_message(message.channel, '{} removed'.format(drop.name))

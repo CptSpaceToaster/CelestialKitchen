@@ -71,6 +71,14 @@ def command(schema):
     return decorator
 
 
+class BooleanValidator(Validator):
+    def validate(self, token):
+        if len(token) == 0 or token.lower() == 'false' or token.lower() == 'f':
+            return False
+        else:
+            return True
+
+
 class IdValidator(Validator):
     def validate(self, token):
         if not token.startswith('<@') or not token.endswith('>'):
@@ -125,6 +133,7 @@ ExploreSchema = Schema(validators=[AreaValidator('recipe')])
 CraftSchema = Schema(validators=[RecipeValidator('recipe')])
 NameSchema = Schema(validators=[Validator('name')])
 AreaSchema = Schema(validators=[AreaValidator('area')])
+DropsSchema = Schema(validators=[AreaValidator('area'), BooleanValidator('show_command', default=False)])
 NewDropSchema = Schema(validators=[AreaValidator('area'), Validator('name'), NumericValidator('quantity'), NumericValidator('ticks'), NumericValidator('weight', default=1)])
 RemoveDropSchema = Schema(validators=[AreaValidator('area'), Validator('name')])
 AdjustDropSchema = Schema(validators=[AreaValidator('area'), Validator('name'), NumericValidator('number')])

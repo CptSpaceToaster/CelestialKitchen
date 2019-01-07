@@ -10,8 +10,8 @@ from celestialKitchen.models.user import User
 mod_association_table = \
     Table('mod_association',
           Model.metadata,
-          Column('server_id', Integer, ForeignKey('server.id')),
-          Column('user_id', Integer, ForeignKey('user.id'))
+          Column('server_id', String, ForeignKey('server.id')),
+          Column('user_id', String, ForeignKey('user.id'))
 )
 
 

@@ -2,7 +2,7 @@ from celestialKitchen.database import db
 from celestialKitchen.models.area import Area
 from celestialKitchen.models.drop import Drop
 from celestialKitchen.wrappers import requires_mod, fetch_server
-from celestialKitchen.schema import command, NameSchema, MentionSchema, GrantSchema, AreaSchema, NewDropSchema, RemoveDropSchema, AdjustDropSchema
+from celestialKitchen.schema import command, NameSchema, MentionSchema, GrantSchema, AreaSchema, DropsSchema, NewDropSchema, RemoveDropSchema, AdjustDropSchema
 from celestialKitchen.inventory import adjust_item_quantity
 
 
@@ -68,11 +68,13 @@ async def process_remove_drop(client, message, area, name):
 
 
 @requires_mod
-@command(AreaSchema)
-async def process_drops(client, message, area):
-    resp = '**__Drops__**:'
+@command(DropsSchema)
+async def process_drops(client, message, area, show_command):
+    resp = '**__{} Drops__**:'.format(area.name)
     for drop in area.drops:
         resp += '\n{} - quantity: {} - ticks: {} - weight: {}'.format(drop.name, drop.quantity, drop.ticks, drop.weight)
+        if show_command:
+            resp += '\n\t`!add_drop {} {} {} {}`'.format(drop.name, drop.quantity, drop.ticks, drop.weight)
     await client.send_message(message.channel, resp)
 
 
