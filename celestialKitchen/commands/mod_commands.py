@@ -70,11 +70,14 @@ async def process_remove_drop(client, message, area, name):
 @requires_mod
 @command(DropsSchema)
 async def process_drops(client, message, area, show_command):
-    resp = '**__{} Drops__**:'.format(area.name)
+    resp = '**__Drops - {}__**:'.format(area.name)
     for drop in area.drops:
         resp += '\n{} - quantity: {} - ticks: {} - weight: {}'.format(drop.name, drop.quantity, drop.ticks, drop.weight)
-        if show_command:
-            resp += '\n\t`!add_drop {} {} {} {}`'.format(drop.name, drop.quantity, drop.ticks, drop.weight)
+    if show_command:
+        resp += '```'
+        for drop in area.drops:
+            resp += '\n!add_drop {} "{}" {} {} {}'.format(area.name, drop.name, drop.quantity, drop.ticks, drop.weight)
+        resp += '```'
     await client.send_message(message.channel, resp)
 
 
